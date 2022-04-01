@@ -1,21 +1,27 @@
 // global constants
-const clueHoldTime = 1000; //how long to hold each clue's light/sound
+
 const cluePauseTime = 333; //how long to pause in between clues
 const nextClueWaitTime = 1000; //how long to wait before starting playback 
                               // of the clue sequence
 
 //Global Variables
-var pattern = [2, 2, 4, 3, 2, 1, 2, 4];
+var clueHoldTime = 1000; //how long to hold each clue's light/sound
+var pattern = [2, 1, 4, 3, 6, 5, 8, 7];
 var progress = 0;
 var gamePlaying = false;
 var tonePlaying = false;
 var volume = 0.5; //must be between 0.0 and 1.0
 var guessCounter = 0; //keeps track of where user is with clue sequence
+var mistakes = 0;
+
 
 function startGame(){
+  secretPattern();
   // initialize game variables
   progress = 0;
+  mistakes = 0;
   gamePlaying = true;
+  clueHoldTime = 1000;
   // swap the Start and Stop buttons
   document.getElementById("startBtn").classList.add("hidden");
   document.getElementById("stopBtn").classList.remove("hidden");
@@ -32,12 +38,24 @@ function stopGame(){
   document.getElementById("stopBtn").classList.add("hidden");
 }
 
+function secretPattern(){
+  var array = [];
+  for(let i=0; i<8; i++){
+    array.push(Math.floor(Math.random()*8) + 1);
+  pattern = array;
+}
+}
+
 // Sound Synthesis Functions
 const freqMap = {
   1: 261.6,
   2: 329.6,
   3: 392,
-  4: 466.2
+  4: 466.2,
+  5: 200.4,
+  6: 186.7,
+  7: 556.2,
+  8: 700
 }
 function playTone(btn,len){ 
   o.frequency.value = freqMap[btn]
@@ -99,6 +117,7 @@ function playClueSequence(){
     setTimeout(playSingleClue,delay,pattern[i]) // set a timeout to play that clue
     delay += clueHoldTime 
     delay += cluePauseTime;
+    clueHoldTime -= 20;
   }
 }
   
@@ -142,9 +161,17 @@ function guess(btn){
       guessCounter++;
     }
   }else{
-    //Guess was incorrect
-    //GAME OVER: LOSE!
-    loseGame();
+    if(mistakes < 2){
+      //guess was wrong 
+      //increase strike
+      mistakes += 1;
+      playClueSequence();
+    }
+    else{
+      //Guess was incorrect
+      //GAME OVER: LOSE!
+      loseGame();
+    }
   }
 } 
 
